@@ -1,23 +1,23 @@
 #include "Player.h"
 
-Player::Player(Texture2D* texture, float speed, Texture2D* bulletTexture) : Entity(texture, posX, posY), speed(speed)
+Player::Player(Texture2D* texture, float speed, Texture2D* bulletTexture, float delay) : Entity(texture, posX, posY), speed(speed), shootingTimer(0), shootingDelay(delay)
 {
 	posX = 400;//set initial position
 	posY = 740;
-	maxBullets = 10;
+	maxBullets = 12;
 	bullets = new Bullet[12]{//if theres a short way of doing this I dont know it
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f),
-		Bullet(bulletTexture, speed * 3.0f)
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed),
+		Bullet(bulletTexture,posX,posY, speed)
 	};
 }
 
@@ -41,15 +41,21 @@ void Player::Event()
 			posX = 752;
 	}
 	
-	if (IsKeyPressed(KEY_SPACE))
+	if (shootingTimer <= 0.0f && IsKeyPressed(KEY_SPACE)) //press to shoot
 	{
 		for (int i = 0; i < maxBullets; i++)
 		{
-			if (!bullets[i].IsHit())
+			if (bullets[i].IsHit()) //reset bullet if it has hit something
 			{
-				bullets[i].Update();
+				bullets[i].Reset(posX, posY);//fire bullet
+				shootingTimer = shootingDelay;//add delay between shots
+				break;
 			}
 		}
+	}
+	else
+	{
+		shootingTimer -= GetFrameTime();//time dow to next available shot
 	}
 }
 
@@ -58,7 +64,7 @@ void Player::Update()
 	Event();
 	for (int i = 0; i < maxBullets; i++)
 	{
-		if (!bullets[i].IsHit())
+		if (!bullets[i].IsHit())//update all bullet logic
 		{
 			bullets[i].Update();
 		}
@@ -68,5 +74,12 @@ void Player::Draw()
 {
 	
 	DrawTexturePro(*texture, Rectangle{ 8, 0, 8, 8 }, Rectangle{ (float)posX, (float)posY , 48, 48 }, Vector2{ 0, 0 }, 0, WHITE);//draw player ship from sprite sheet
+	for (int i = 0; i < maxBullets; i++)
+	{
+		if (!bullets[i].IsHit())//draw all available bullets
+		{
+			bullets[i].Draw();
+		}
+	}
 	
 }

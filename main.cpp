@@ -41,8 +41,8 @@ int main(int argc, char* argv[])
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
     Background background(&backgroundTexture, 100);
-    Player player(&playerTexture, 500, &bulletTexture);
-    Bullet bullet(&bulletTexture, 300);
+    Player player(&playerTexture, 500, &bulletTexture, 0.25f);
+    //Bullet bullet(&bulletTexture,0,0, 300);
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {

@@ -5,7 +5,7 @@
 class Player : public Entity
 {
 public:
-	Player(Texture2D* texture, float speed, Texture2D* bulletTexture);
+	Player(Texture2D* texture, float speed, Texture2D* bulletTexture, float delay);
 	~Player();
 	void Event();
 	void Update();
@@ -19,6 +19,8 @@ private:
 
 	Bullet* bullets;
 	int maxBullets;
+	float shootingTimer;
+	float shootingDelay;
 
 };
 
