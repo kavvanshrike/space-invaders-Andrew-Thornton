@@ -28,6 +28,8 @@
 #include "Background.h"
 #include "Player.h"
 #include "Bullet.h"
+#include "Enemy.h"
+#include <iostream>
 int main(int argc, char* argv[])
 {
     // Initialization
@@ -36,12 +38,28 @@ int main(int argc, char* argv[])
     int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
     Texture2D backgroundTexture = LoadTexture("images/SpaceShooterAssetPack_BackGrounds.png");
-    Texture2D playerTexture = LoadTexture("images/SpaceShooterAssetPack_Ships.png");
+    Texture2D shipTexture = LoadTexture("images/SpaceShooterAssetPack_Ships.png");
     Texture2D bulletTexture = LoadTexture("images/SpaceShooterAssetPack_Projectiles.png");
     SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
     Background background(&backgroundTexture, 100);
-    Player player(&playerTexture, 500, &bulletTexture, 0.25f);
+    Player player(&shipTexture, 500, &bulletTexture, 0.25f);
+    //Enemy enemy(&shipTexture,50, 50, 500, &bulletTexture, 32,16);
+    const int ENEMIES_PER_ROW = 11;
+    const int ENEMIES_PER_COL = 5;
+    const int TOTAL_ENEMIES = ENEMIES_PER_ROW * ENEMIES_PER_COL;
+    Enemy* enemies[TOTAL_ENEMIES];
+    for (int x = 0; x < ENEMIES_PER_ROW; x++)//asign enemy formation
+    {
+        for (int y = 0; y < ENEMIES_PER_COL; y++)
+        {
+            enemies[x + (y * ENEMIES_PER_ROW)] = new Enemy(&shipTexture, x * (GetScreenWidth() / ENEMIES_PER_ROW), y * (GetScreenHeight() / ENEMIES_PER_COL/ 3)+50, 
+                /*speed*/20.0f, 
+                /*offset*/32.0f,
+                /*delay*/0.25f,
+                &bulletTexture, 32 + (y * 8), 16);
+        }
+    }
     //Bullet bullet(&bulletTexture,0,0, 300);
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
@@ -50,6 +68,9 @@ int main(int argc, char* argv[])
         //----------------------------------------------------------------------------------
         background.Update();
         player.Update();
+        for (int i = 0; i < TOTAL_ENEMIES; i++)
+            enemies[i]->Update();
+        //enemy.Update();
         //----------------------------------------------------------------------------------
 
         // Draw
@@ -59,6 +80,9 @@ int main(int argc, char* argv[])
         ClearBackground(BLACK);
         background.Draw();
         player.Draw();
+        for (int i = 0; i < TOTAL_ENEMIES; i++)
+            enemies[i]->Draw();
+        //enemy.Draw();
         DrawText("Congrats! You created your first window!", 190, 200, 20, WHITE);
         
 

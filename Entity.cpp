@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-Entity::Entity(Texture2D* texture, int posX, int posY)
+Entity::Entity(Texture2D* texture, float posX, float posY)
 {
 	this->texture = texture;
 	this->posX = posX;

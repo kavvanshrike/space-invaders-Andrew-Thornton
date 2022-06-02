@@ -1,7 +1,4 @@
-﻿  Bullet.cpp
-C:\Users\User\Desktop\Intro to cpp Andrew Thornton\AIEYear1Samples-master\space-invaders-Andrew-Thornton\Bullet.cpp(11,28): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-  Player.cpp
-C:\Users\User\Desktop\Intro to cpp Andrew Thornton\AIEYear1Samples-master\space-invaders-Andrew-Thornton\Player.cpp(33,26): warning C4244: '-=': conversion from 'float' to 'int', possible loss of data
-C:\Users\User\Desktop\Intro to cpp Andrew Thornton\AIEYear1Samples-master\space-invaders-Andrew-Thornton\Player.cpp(39,26): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-  Generating Code...
+﻿  Enemy.cpp
+C:\Users\User\Desktop\Intro to cpp Andrew Thornton\AIEYear1Samples-master\space-invaders-Andrew-Thornton\Enemy.cpp(9,20): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\User\Desktop\Intro to cpp Andrew Thornton\AIEYear1Samples-master\space-invaders-Andrew-Thornton\Enemy.cpp(57,22): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
   RaylibStarterCPP.vcxproj -> C:\Users\User\Desktop\Intro to cpp Andrew Thornton\AIEYear1Samples-master\bin\x64\Debug\Space Invaders.exe

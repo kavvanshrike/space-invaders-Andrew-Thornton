@@ -6,18 +6,18 @@ Player::Player(Texture2D* texture, float speed, Texture2D* bulletTexture, float 
 	posY = 740;
 	maxBullets = 12;
 	bullets = new Bullet[12]{//if theres a short way of doing this I dont know it
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed),
-		Bullet(bulletTexture,posX,posY, speed)
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8),
+		Bullet(bulletTexture,posX,posY, speed, 8, 8)
 	};
 }
 

@@ -1,5 +1,5 @@
 #include "Background.h"
-Background::Background(Texture2D* texture, float speed) : Entity(texture, posX, posY), speed(speed)
+Background::Background(Texture2D* texture, float speed) : Entity(texture, posX, posY), speed(speed), posX(0), posY(0)
 {
 }
 

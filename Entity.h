@@ -4,14 +4,14 @@
 class Entity
 {
 public:
-	Entity(Texture2D* texture, int posX, int posY);
+	Entity(Texture2D* texture, float posX, float posY);
 	virtual void Event();
 	virtual void Update();
 	virtual void Draw();
-	int posX;
-	int posY;
+	
 
 protected:
 	Texture2D* texture;
-	
+	float posX;
+	float posY;
 };

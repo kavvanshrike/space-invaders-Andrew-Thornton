@@ -14,8 +14,8 @@ public:
 private:
 	float speed;
 	//int health;
-	int posX;
-	int posY;
+	float posX;
+	float posY;
 
 	Bullet* bullets;
 	int maxBullets;
