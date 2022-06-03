@@ -8,11 +8,11 @@ public:
 	~Enemy();
 	void Update();
 	void Draw();
+
+	void GetCollisions(Entity* e);
 	
 private:
 	float speed;
-	float posX;
-	float posY;
 	int spriteX;
 	int	spriteY;
 	float towardsBottom;

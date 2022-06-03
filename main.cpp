@@ -29,7 +29,75 @@
 #include "Player.h"
 #include "Bullet.h"
 #include "Enemy.h"
+#include "Shield.h"
+#include "Ship.h"
+#include <string>
 #include <iostream>
+
+//constant definitions
+const int ENEMIES_PER_ROW = 11;
+const int ENEMIES_PER_COL = 5;
+const int TOTAL_ENEMIES = ENEMIES_PER_ROW * ENEMIES_PER_COL;
+const int TOTAL_SHIELDS = 4;
+const int TOTAL_ENTITIES = 3 + TOTAL_ENEMIES + TOTAL_SHIELDS;
+
+enum EntityIDs {//use enums to order our entity array
+    BACKGROUND,
+    PLAYER,
+    SHIELD_1,
+    SHIELD_2,
+    SHIELD_3,
+    SHIELD_4, 
+    MOTHERSHIP
+};
+enum TextureIDs {//use enums to help assign textures in entity array
+    BACKGROUND_TEX,
+    SHIPS_TEX,
+    PROJECTILE_TEX,
+    MISC_TEX
+};
+
+void CreateEntities(Entity** ents, Texture2D* textures)//create one array of entities
+{
+    ents[BACKGROUND] = new Background(&textures[BACKGROUND_TEX], 100);
+    ents[PLAYER] = new Player (&textures[SHIPS_TEX], 500, &textures[PROJECTILE_TEX], 0.25f);
+    //Ship motherShip(&shipTexture, -64, 25, 50.0f);
+
+    
+    int shieldSpacing = (GetScreenWidth() / (TOTAL_SHIELDS + 1));
+    for (int i = 0; i <= SHIELD_4-SHIELD_1; i++)
+    {
+        ents[i + SHIELD_1] = new Shield(&textures[MISC_TEX], shieldSpacing + (i * shieldSpacing) - 32, GetScreenHeight() - 160);
+    }
+    ents[MOTHERSHIP] = new Ship(&textures[SHIPS_TEX], -64, 25, 50.0f);
+    for (int x = 0; x < ENEMIES_PER_ROW; x++)//asign enemy formation
+    {
+        for (int y = 0; y < ENEMIES_PER_COL; y++)
+        {
+            ents[x + MOTHERSHIP + 1 + (y * ENEMIES_PER_ROW)] = new Enemy(&textures[SHIPS_TEX], x * (GetScreenWidth() / ENEMIES_PER_ROW), y * (GetScreenHeight() / ENEMIES_PER_COL / 3) + 50,
+                /*speed*/20.0f,
+                /*offset*/32.0f,
+                /*delay*/0.25f,
+                &textures[PROJECTILE_TEX], 32 + (y * 8), 16);
+        }
+    }
+}
+
+int GetCollisions(Entity** e, int i)//check for collisions between entities
+{
+    int score = 0;
+    if (i != BACKGROUND && i != PLAYER)//not the background
+    {
+        score += ((Player*)e[PLAYER])->GetCollisions(e[i]);
+    }
+    if (i == PLAYER || (i >= SHIELD_1 && i <= SHIELD_4))//checking for collisions with enemy bullets
+    {
+        for(int a = MOTHERSHIP+1; a < TOTAL_ENTITIES; a++)
+            ((Enemy*)e[a])->GetCollisions(e[i]);
+    }
+    return score;
+}
+
 int main(int argc, char* argv[])
 {
     // Initialization
@@ -37,39 +105,32 @@ int main(int argc, char* argv[])
     int screenWidth = 800;
     int screenHeight = 800;
     InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
-    Texture2D backgroundTexture = LoadTexture("images/SpaceShooterAssetPack_BackGrounds.png");
-    Texture2D shipTexture = LoadTexture("images/SpaceShooterAssetPack_Ships.png");
-    Texture2D bulletTexture = LoadTexture("images/SpaceShooterAssetPack_Projectiles.png");
-    SetTargetFPS(60);
+
+    Texture2D textures[4] = {
+    LoadTexture("images/SpaceShooterAssetPack_BackGrounds.png"),
+    LoadTexture("images/SpaceShooterAssetPack_Ships.png"),
+    LoadTexture("images/SpaceShooterAssetPack_Projectiles.png"),
+    LoadTexture("images/SpaceShooterAssetPack_Miscellaneous.png"),
+    };
+    Entity* ents[TOTAL_ENTITIES];
+    CreateEntities(ents, textures);
+    int score = 0;
+    //SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
-    Background background(&backgroundTexture, 100);
-    Player player(&shipTexture, 500, &bulletTexture, 0.25f);
-    //Enemy enemy(&shipTexture,50, 50, 500, &bulletTexture, 32,16);
-    const int ENEMIES_PER_ROW = 11;
-    const int ENEMIES_PER_COL = 5;
-    const int TOTAL_ENEMIES = ENEMIES_PER_ROW * ENEMIES_PER_COL;
-    Enemy* enemies[TOTAL_ENEMIES];
-    for (int x = 0; x < ENEMIES_PER_ROW; x++)//asign enemy formation
-    {
-        for (int y = 0; y < ENEMIES_PER_COL; y++)
-        {
-            enemies[x + (y * ENEMIES_PER_ROW)] = new Enemy(&shipTexture, x * (GetScreenWidth() / ENEMIES_PER_ROW), y * (GetScreenHeight() / ENEMIES_PER_COL/ 3)+50, 
-                /*speed*/20.0f, 
-                /*offset*/32.0f,
-                /*delay*/0.25f,
-                &bulletTexture, 32 + (y * 8), 16);
-        }
-    }
+    
     //Bullet bullet(&bulletTexture,0,0, 300);
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
-        background.Update();
-        player.Update();
-        for (int i = 0; i < TOTAL_ENEMIES; i++)
-            enemies[i]->Update();
+        
+        for (int i = 0; i < TOTAL_ENTITIES; i++)
+        {
+            ents[i]->Update();
+            score += GetCollisions(ents, i)/10;
+        }
+            
         //enemy.Update();
         //----------------------------------------------------------------------------------
 
@@ -78,13 +139,13 @@ int main(int argc, char* argv[])
         BeginDrawing();
         
         ClearBackground(BLACK);
-        background.Draw();
-        player.Draw();
-        for (int i = 0; i < TOTAL_ENEMIES; i++)
-            enemies[i]->Draw();
-        //enemy.Draw();
-        DrawText("Congrats! You created your first window!", 190, 200, 20, WHITE);
         
+        for (int i = 0; i < TOTAL_ENTITIES; i++)
+            ents[i]->Draw();
+        //text rendering
+        std::string scoreStr = std::to_string(score);
+        DrawText(scoreStr.c_str(), 8, 8, 28, WHITE);//show curent score
+        //keep this line in mind for using raylib as it only accepts *const char into the drawtext function
 
         EndDrawing();
         //----------------------------------------------------------------------------------

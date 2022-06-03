@@ -1,12 +1,16 @@
 #include "Enemy.h"
 #include <stdlib.h>
 #include <iostream>
-Enemy::Enemy(Texture2D* texture,float posX, float posY, float speed, float offset, float delay, Texture2D* bulletTexture, int spriteX, int spriteY) : Entity(texture, posX, posY), 
-speed(speed), shootingTimer(0), posX(posX), posY(posY), spriteX(spriteX), spriteY(spriteY), moveTimer(0.0f), moveDelay(delay), offset(offset), towardsBottom(0.0f)
+Enemy::Enemy(Texture2D* texture,float posX, float posY, float speed, float offset, float delay, Texture2D* bulletTexture, int spriteX, int spriteY) : Entity(texture, posX, posY, width, height),
+speed(speed), shootingTimer(0), spriteX(spriteX), spriteY(spriteY), moveTimer(0.0f), moveDelay(delay), offset(offset), towardsBottom(0.0f) 
 {
+	this->posX = posX;
+	this->posY = posY;
 	initial = posX;
-	bullet = new Bullet(bulletTexture,posX,posY, (200 * -1), 12, 0);
+	bullet = new Bullet(bulletTexture,posX,posY, (200 * -1), 12, 0, 32,32);
 	shootingTimer = 5 + (rand() % 55);
+	width = 48;
+	height = 48;
 }
 
 Enemy::~Enemy()
@@ -16,6 +20,10 @@ Enemy::~Enemy()
 
 void Enemy::Update()
 {
+	if (!bullet->IsHit())//we put this up here so whe enemy is shot down its bullets will still work without it
+		bullet->Update();
+
+	if (!enabled) return;
 	float deltaTime = GetFrameTime();
 	if (moveTimer <= 0.0f)//move enemy
 	{
@@ -62,14 +70,26 @@ void Enemy::Update()
 	{
 		shootingTimer -= GetFrameTime();//time down to next available shot
 	}
-	if (!bullet->IsHit())
-		bullet->Update();
+	
 }
 void Enemy::Draw()
 {
-	if (!bullet->IsHit())
-		bullet->Draw();
-	DrawTexturePro(*texture, Rectangle{ (float)spriteX, (float)spriteY, 8, 8 }, Rectangle{ (float)posX, (float)posY , 48, 48 }, Vector2{ 0, 0 }, 0, WHITE);//draw enemy ship from sprite sheet
 	
 
+	if (!bullet->IsHit())//draw bullets before enabled check so they continue to draw when enemy is slain
+		bullet->Draw();
+
+	if (!enabled) return;
+	//DrawRectangle(posX, posY, width, height, RED);
+	DrawTexturePro(*texture, Rectangle{ (float)spriteX, (float)spriteY, 8, 8 }, Rectangle{ (float)posX, (float)posY , width, height }, Vector2{ 0, 0 }, 0, WHITE);//draw enemy ship from sprite sheet
+	
+
+}
+void Enemy::GetCollisions(Entity* e)
+{
+	if (!bullet->IsHit() && bullet->isColliding(e))//draw all available bullets
+	{
+		bullet->CollisionHit();
+		e->Receive(DAMAGE);
+	}
 }

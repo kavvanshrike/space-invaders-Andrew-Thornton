@@ -11,11 +11,10 @@ public:
 	void Update();
 	void Draw();
 
+	int GetCollisions(Entity* e);
+
 private:
 	float speed;
-	//int health;
-	float posX;
-	float posY;
 
 	Bullet* bullets;
 	int maxBullets;

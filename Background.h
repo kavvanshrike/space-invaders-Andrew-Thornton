@@ -9,7 +9,5 @@ public:
 
 private:
 	float speed;
-	int posX;
-	int posY;
 };
 
