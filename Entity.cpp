@@ -1,7 +1,7 @@
 #include "Entity.h"
 #include <iostream>
 
-Entity::Entity(Texture2D* texture, float posX, float posY, float width, float height)
+Entity::Entity(Texture2D* texture, float posX, float posY, Rectangle spriteRec, float width, float height)
 {
 	this->texture = texture;
 	this->posX = posX;
@@ -9,6 +9,7 @@ Entity::Entity(Texture2D* texture, float posX, float posY, float width, float he
 	this->width = width;
 	this->height = height;
 	enabled = true;
+	spriteRec = Rectangle{NULL, NULL, NULL,NULL};
 }
 
 

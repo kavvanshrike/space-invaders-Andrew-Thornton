@@ -1,27 +1,30 @@
 #include "Player.h"
 #include <iostream>
 
-Player::Player(Texture2D* texture, float speed, Texture2D* bulletTexture, float delay) : Entity(texture, posX, posY, width, height), speed(speed), shootingTimer(0), shootingDelay(delay)
+Player::Player(Texture2D* texture, float speed, Texture2D* bulletTexture, float delay) : Entity(texture, posX, posY,spriteRec, width, height), speed(speed), shootingTimer(0), shootingDelay(delay)
 {
 	posX = 400;//set initial position
 	posY = 740;
 	maxBullets = 12;
+	lives = 3;
 	width = 48;
 	height = 48;
 	bullets = new Bullet[12]{//if theres a short way of doing this I dont know it
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32),
-		Bullet(bulletTexture,posX,posY, speed, 8, 8, 32, 32)
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32),
+		Bullet(bulletTexture,posX,posY, speed, Rectangle{ 8, 8 , 8 , 8}, 32, 32)
 	};
+	textureThrottle = NULL;
+	throttleRec = Rectangle{ 0, 0, 0, 0 };
 }
 
 Player::~Player()
@@ -50,7 +53,7 @@ void Player::Event()
 	{
 		for (int i = 0; i < maxBullets; i++)
 		{
-			if (bullets[i].IsHit()) //reset bullet if it has hit something
+			if (!bullets[i].enabled) //reset bullet if it has hit something
 			{
 				bullets[i].Reset(posX, posY);//fire bullet
 				shootingTimer = shootingDelay;//add delay between shots
@@ -66,16 +69,15 @@ void Player::Event()
 
 void Player::Update()
 {
+	
 	if (!enabled) return;
 
 	Event();
 	for (int i = 0; i < maxBullets; i++)
 	{
-		if (!bullets[i].IsHit())//update all bullet logic
-		{
-			bullets[i].Update();
-		}
+		bullets[i].Update();
 	}
+	throttleRec.x = 40 + ((((int)(GetTime() * 10)) % 4) * 8);//make throttle shift sprites, making it into a sprite sheet animation
 }
 void Player::Draw()
 {
@@ -85,12 +87,26 @@ void Player::Draw()
 	DrawTexturePro(*texture, Rectangle{ 8, 0, 8, 8 }, Rectangle{ (float)posX, (float)posY , 48, 48 }, Vector2{ 0, 0 }, 0, WHITE);//draw player ship from sprite sheet
 	for (int i = 0; i < maxBullets; i++)
 	{
-		if (!bullets[i].IsHit())//draw all available bullets
-		{
-			bullets[i].Draw();
-		}
+		bullets[i].Draw();
+		
 	}
-	
+	DrawTexturePro(*textureThrottle, throttleRec, Rectangle{ (float)posX, (float)posY+35 , 48, 48 }, Vector2{ 0, 0 }, 0, WHITE);//draw throttle
+	for (int i = 0; i < lives; i++)
+	{
+		DrawTexturePro(*texture, Rectangle{ 8, 0, 8, 8 }, Rectangle{ 8.0f+(i*(24+8)), (float)GetScreenHeight() - 24 , 24, 24}, Vector2{0, 0}, 0, WHITE);
+	}
+}
+
+int Player::Receive(int i)//override default receive to remove lives instead of disabling immediately
+{
+	switch (i)
+	{
+	case DAMAGE:
+		lives--;
+		if (lives <= 0) enabled = false;
+		break;
+	}
+	return 0;
 }
 
 int Player::GetCollisions(Entity* e)
@@ -101,9 +117,16 @@ int Player::GetCollisions(Entity* e)
 		if (!bullets[i].IsHit() && bullets[i].isColliding(e))//draw all available bullets
 		{
 			//std::cout << bullets[i].posX
-			bullets[i].CollisionHit();
+			bullets[i].CollisionHit(-1);
 			totalScore += e->Receive(DAMAGE);
 		}
 	}
 	return totalScore;
+}
+
+void Player::SetThrottle(Texture2D* texture, Rectangle rectangle)//set throttle sprite
+{
+	textureThrottle = texture;
+	throttleRec = rectangle;
+
 }

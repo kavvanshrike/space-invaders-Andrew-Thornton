@@ -1,6 +1,6 @@
 #include "Shield.h"
 
-Shield::Shield(Texture2D* texture, float posX, float posY) : Entity(texture, posX, posY, width, height), hp(4), spriteX(88)
+Shield::Shield(Texture2D* texture, float posX, float posY) : Entity(texture, posX, posY,spriteRec, width, height), hp(4), spriteX(88)
 {
 	width = 64;
 	height = 64;

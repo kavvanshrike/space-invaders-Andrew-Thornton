@@ -11,7 +11,11 @@ public:
 	void Update();
 	void Draw();
 
+	int Receive(int i);
+
 	int GetCollisions(Entity* e);
+
+	void SetThrottle(Texture2D* texture, Rectangle rectangle);
 
 private:
 	float speed;
@@ -20,6 +24,11 @@ private:
 	int maxBullets;
 	float shootingTimer;
 	float shootingDelay;
+
+	int lives;
+
+	Texture2D* textureThrottle;
+	Rectangle throttleRec;
 
 };
 

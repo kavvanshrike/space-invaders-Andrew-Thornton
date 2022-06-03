@@ -1,14 +1,16 @@
 #include "Enemy.h"
 #include <stdlib.h>
 #include <iostream>
-Enemy::Enemy(Texture2D* texture,float posX, float posY, float speed, float offset, float delay, Texture2D* bulletTexture, int spriteX, int spriteY) : Entity(texture, posX, posY, width, height),
-speed(speed), shootingTimer(0), spriteX(spriteX), spriteY(spriteY), moveTimer(0.0f), moveDelay(delay), offset(offset), towardsBottom(0.0f) 
+float Enemy::_speed = 0.0f;
+
+Enemy::Enemy(Texture2D* texture,float posX, float posY, float offset, float delay, Texture2D* bulletTexture, int spriteX, int spriteY) : Entity(texture, posX, posY, spriteRec, width, height),
+speed(_speed), shootingTimer(0), spriteX(spriteX), spriteY(spriteY), moveTimer(0.0f), moveDelay(delay), offset(offset), towardsBottom(0.0f) 
 {
 	this->posX = posX;
 	this->posY = posY;
 	initial = posX;
-	bullet = new Bullet(bulletTexture,posX,posY, (200 * -1), 12, 0, 32,32);
-	shootingTimer = 5 + (rand() % 55);
+	bullet = new Bullet(bulletTexture,posX,posY, (200 * -1), Rectangle{ 12, 0 , 8 , 8 }, 32,32);
+	shootingTimer = 5 + (rand() % 35);
 	width = 48;
 	height = 48;
 }
@@ -20,7 +22,7 @@ Enemy::~Enemy()
 
 void Enemy::Update()
 {
-	if (!bullet->IsHit())//we put this up here so whe enemy is shot down its bullets will still work without it
+	//we put this up here so when enemy is shot down its bullets will still work without it
 		bullet->Update();
 
 	if (!enabled) return;
@@ -30,7 +32,7 @@ void Enemy::Update()
 		if (moveTimer > -moveDelay)
 		{
 			posX += deltaTime * speed;
-			if (towardsBottom > 0.0f)
+			if (towardsBottom > 0.0f)//move invader down
 			{
 				towardsBottom -= deltaTime * abs(speed);
 				posY += deltaTime * abs(speed);
@@ -44,27 +46,31 @@ void Enemy::Update()
 	if (posX >= (initial + offset))//if hits right side
 	{
 		posX = initial + offset-1;//i had bugs where random columns of enemies would yeet down the screen so we make sure this can't loop
-		speed = -abs(speed);
+		speed = -abs(_speed);
 		//posY += 16;
 		towardsBottom = 16;
 	}
 	else if (posX < initial)//if enemy reaches its former position 
 	{
 		posX = initial;//prevent enemies from triggering this if statement twice in a row
-		speed = abs(speed);//reverse
+		speed = abs(_speed);//reverse
 		//posY += 16;//
 		towardsBottom = 16;
 	}
-
-
-	if (shootingTimer <= 0.0f) //enemy shoot
+	else
 	{
-		if (bullet->IsHit()) //reset bullet if it has hit something
-		{
+		if (speed > 0) speed = abs(_speed);
+		else speed = -abs(_speed);
+
+	}
+
+
+	if (shootingTimer <= 0.0f && !bullet->enabled) //enemy shoot
+	{
 			bullet->Reset(posX-20, posY+60);//fire bullet added an offset since firing bullet from posX and posY is way off centre
-			shootingTimer = 5 + (rand() % 55);//reset bullet fired
+			shootingTimer = 5 + (rand() % 35);//reset bullet fired
 			//break;
-		}
+		
 	}
 	else if(shootingTimer > 0.0f)
 	{
@@ -74,9 +80,7 @@ void Enemy::Update()
 }
 void Enemy::Draw()
 {
-	
-
-	if (!bullet->IsHit())//draw bullets before enabled check so they continue to draw when enemy is slain
+	//draw bullets before enabled check so they continue to draw when enemy is slain
 		bullet->Draw();
 
 	if (!enabled) return;
@@ -85,11 +89,17 @@ void Enemy::Draw()
 	
 
 }
-void Enemy::GetCollisions(Entity* e)
+void Enemy::GetCollisions(Entity* e, int index)
 {
-	if (!bullet->IsHit() && bullet->isColliding(e))//draw all available bullets
+	if (!bullet->IsHit() && bullet->isColliding(e))//check collision on all available bullets
 	{
-		bullet->CollisionHit();
+		_speed += 3.0f;
+		bullet->CollisionHit(index);
 		e->Receive(DAMAGE);
 	}
+}
+
+void Enemy::SetSpeed(float vspeed)
+{
+	_speed = vspeed;
 }

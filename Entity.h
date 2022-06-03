@@ -9,7 +9,7 @@ enum EntityReceiveIDs
 class Entity
 {
 public:
-	Entity(Texture2D* texture, float posX, float posY, float width, float height);
+	Entity(Texture2D* texture, float posX, float posY, Rectangle spriteRec, float width, float height);
 	virtual void Event();
 	virtual void Update();
 	virtual void Draw();
@@ -19,6 +19,7 @@ public:
 	bool enabled;
 
 protected:
+	Rectangle spriteRec;
 	Texture2D* texture;
 	float posX;
 	float posY;

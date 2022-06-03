@@ -33,6 +33,7 @@
 #include "Ship.h"
 #include <string>
 #include <iostream>
+#include <fstream>
 
 //constant definitions
 const int ENEMIES_PER_ROW = 11;
@@ -60,7 +61,8 @@ enum TextureIDs {//use enums to help assign textures in entity array
 void CreateEntities(Entity** ents, Texture2D* textures)//create one array of entities
 {
     ents[BACKGROUND] = new Background(&textures[BACKGROUND_TEX], 100);
-    ents[PLAYER] = new Player (&textures[SHIPS_TEX], 500, &textures[PROJECTILE_TEX], 0.25f);
+    ents[PLAYER] = new Player (&textures[SHIPS_TEX], 500, &textures[PROJECTILE_TEX], 0.5f);
+    ((Player*)ents[PLAYER])->SetThrottle(&textures[MISC_TEX], Rectangle{ 48, 8, 8, 8 });
     //Ship motherShip(&shipTexture, -64, 25, 50.0f);
 
     
@@ -70,12 +72,12 @@ void CreateEntities(Entity** ents, Texture2D* textures)//create one array of ent
         ents[i + SHIELD_1] = new Shield(&textures[MISC_TEX], shieldSpacing + (i * shieldSpacing) - 32, GetScreenHeight() - 160);
     }
     ents[MOTHERSHIP] = new Ship(&textures[SHIPS_TEX], -64, 25, 50.0f);
+    Enemy::SetSpeed(16.0f);
     for (int x = 0; x < ENEMIES_PER_ROW; x++)//asign enemy formation
     {
         for (int y = 0; y < ENEMIES_PER_COL; y++)
         {
             ents[x + MOTHERSHIP + 1 + (y * ENEMIES_PER_ROW)] = new Enemy(&textures[SHIPS_TEX], x * (GetScreenWidth() / ENEMIES_PER_ROW), y * (GetScreenHeight() / ENEMIES_PER_COL / 3) + 50,
-                /*speed*/20.0f,
                 /*offset*/32.0f,
                 /*delay*/0.25f,
                 &textures[PROJECTILE_TEX], 32 + (y * 8), 16);
@@ -86,16 +88,39 @@ void CreateEntities(Entity** ents, Texture2D* textures)//create one array of ent
 int GetCollisions(Entity** e, int i)//check for collisions between entities
 {
     int score = 0;
-    if (i != BACKGROUND && i != PLAYER)//not the background
+    if (i != BACKGROUND && i != PLAYER && !(i >= SHIELD_1 && i <= SHIELD_4))//not the background
     {
         score += ((Player*)e[PLAYER])->GetCollisions(e[i]);
     }
     if (i == PLAYER || (i >= SHIELD_1 && i <= SHIELD_4))//checking for collisions with enemy bullets
     {
         for(int a = MOTHERSHIP+1; a < TOTAL_ENTITIES; a++)
-            ((Enemy*)e[a])->GetCollisions(e[i]);
+            ((Enemy*)e[a])->GetCollisions(e[i], i);
     }
     return score;
+}
+
+int LoadHighscore()
+{
+    int highscore = 0;
+    std::ifstream scoreReader;
+    scoreReader.open("hsc.txt");
+    if (!scoreReader.fail() && scoreReader.good())
+        scoreReader >> highscore;
+    scoreReader.close();
+    return highscore;
+}
+
+void SaveHighscore(int& score, int& highscore)
+{
+    if(score>highscore)
+    {
+        highscore = score;
+        std::ofstream scoreWriter;
+        scoreWriter.open("hsc.txt");
+        scoreWriter << highscore;
+        scoreWriter.close();
+    }
 }
 
 int main(int argc, char* argv[])
@@ -115,6 +140,7 @@ int main(int argc, char* argv[])
     Entity* ents[TOTAL_ENTITIES];
     CreateEntities(ents, textures);
     int score = 0;
+    int highscore = LoadHighscore();
     //SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
     
@@ -130,7 +156,7 @@ int main(int argc, char* argv[])
             ents[i]->Update();
             score += GetCollisions(ents, i)/10;
         }
-            
+        SaveHighscore(score, highscore);
         //enemy.Update();
         //----------------------------------------------------------------------------------
 
@@ -146,6 +172,8 @@ int main(int argc, char* argv[])
         std::string scoreStr = std::to_string(score);
         DrawText(scoreStr.c_str(), 8, 8, 28, WHITE);//show curent score
         //keep this line in mind for using raylib as it only accepts *const char into the drawtext function
+        std::string highscoreStr = std::to_string(highscore);
+        DrawText(highscoreStr.c_str(), GetScreenWidth() - 8 -MeasureText(highscoreStr.c_str(), 28), 8, 28, WHITE);//draw highscore
 
         EndDrawing();
         //----------------------------------------------------------------------------------

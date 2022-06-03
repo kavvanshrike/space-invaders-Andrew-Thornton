@@ -1,6 +1,6 @@
 #include "Ship.h"
 #include <stdlib.h>
-Ship::Ship(Texture2D* texture, float posX, float posY, float speed) : Entity(texture, posX, posY, width, height), speed(speed)
+Ship::Ship(Texture2D* texture, float posX, float posY, float speed) : Entity(texture, posX, posY,spriteRec, width, height), speed(speed)
 {
 	moveTimer = 5 + (rand() % 15);//initialise movetimer
 	width = 64;
