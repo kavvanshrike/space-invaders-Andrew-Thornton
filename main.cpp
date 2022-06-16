@@ -161,7 +161,7 @@ void StateFrame(int& state, Entity** ents, Texture* textures, int& score, int& h
             ents[i]->Update();
             score += GetCollisions(ents, i) / 1;
         }
-        if (!ents[PLAYER]->enabled)//save if player is destroyed
+        if (!ents[PLAYER]->enabled || Enemy::GetLoseCondition())//save if player is destroyed
         {
             Enemy::ResetCount();
             SaveHighscore(score, highscore);

@@ -3,10 +3,12 @@
 #include <iostream>
 float Enemy::_speed = 0.0f;
 int Enemy::count = 0;
+bool Enemy::loseCondition = false;
 
 Enemy::Enemy(Texture2D* texture,float posX, float posY, float offset, float delay, Texture2D* bulletTexture, int spriteX, int spriteY) : Entity(texture, posX, posY, spriteRec, width, height),
 speed(_speed), shootingTimer(0), spriteX(spriteX), spriteY(spriteY), moveTimer(0.0f), moveDelay(delay), offset(offset), towardsBottom(0.0f) 
 {
+	loseCondition = false;
 	this->posX = posX;
 	this->posY = posY;
 	initial = posX;
@@ -28,6 +30,10 @@ void Enemy::Update()
 		bullet->Update();
 
 	if (!enabled) return;
+	if (posY > GetScreenHeight())
+	{
+		loseCondition = true;
+	}
 	float deltaTime = GetFrameTime();
 	if (moveTimer <= 0.0f)//move enemy
 	{
@@ -125,3 +131,10 @@ void Enemy::ResetCount()
 {
 	count = 0;
 }
+
+bool Enemy::GetLoseCondition()//use this in main to have the game end on certain conditions
+{
+	return loseCondition;
+}
+
+
