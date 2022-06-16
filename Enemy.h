@@ -10,8 +10,11 @@ public:
 	void Draw();
 
 	void GetCollisions(Entity* e, int index);
+	int Receive(int i);
 
 	static void SetSpeed(float vspeed);
+	static int GetCount();
+	static void ResetCount();
 	
 private:
 	static float _speed;
@@ -27,6 +30,8 @@ private:
 	float moveDelay;
 	float initial;
 	float offset;
+
+	static int count;
 
 };
 

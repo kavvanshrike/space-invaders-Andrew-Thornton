@@ -12,7 +12,7 @@ public:
 
 	void CollisionHit(int index = 0);
 
-	static void SetDestroyAnimation(Texture2D texture, float delay);
+	static void SetDestroyAnimation(Texture2D* texture, float delay);
 
 private:
 	int spriteX;

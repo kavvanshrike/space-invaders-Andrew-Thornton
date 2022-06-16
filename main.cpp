@@ -42,6 +42,15 @@ const int TOTAL_ENEMIES = ENEMIES_PER_ROW * ENEMIES_PER_COL;
 const int TOTAL_SHIELDS = 4;
 const int TOTAL_ENTITIES = 3 + TOTAL_ENEMIES + TOTAL_SHIELDS;
 
+enum States //game state enum
+{
+    START_STATE,
+    PLAY_STATE,
+    PAUSE_STATE,
+    GAMEOVER_STATE,
+    WIN_STATE
+};
+
 enum EntityIDs {//use enums to order our entity array
     BACKGROUND,
     PLAYER,
@@ -61,7 +70,7 @@ enum TextureIDs {//use enums to help assign textures in entity array
 void CreateEntities(Entity** ents, Texture2D* textures)//create one array of entities
 {
     ents[BACKGROUND] = new Background(&textures[BACKGROUND_TEX], 100);
-    ents[PLAYER] = new Player (&textures[SHIPS_TEX], 500, &textures[PROJECTILE_TEX], 0.5f);
+    ents[PLAYER] = new Player (&textures[SHIPS_TEX], 500, &textures[PROJECTILE_TEX], 0.25f);
     ((Player*)ents[PLAYER])->SetThrottle(&textures[MISC_TEX], Rectangle{ 48, 8, 8, 8 });
     //Ship motherShip(&shipTexture, -64, 25, 50.0f);
 
@@ -83,6 +92,7 @@ void CreateEntities(Entity** ents, Texture2D* textures)//create one array of ent
                 &textures[PROJECTILE_TEX], 32 + (y * 8), 16);
         }
     }
+    Bullet::SetDestroyAnimation(&textures[MISC_TEX], 0.05f);
 }
 
 int GetCollisions(Entity** e, int i)//check for collisions between entities
@@ -123,15 +133,143 @@ void SaveHighscore(int& score, int& highscore)
     }
 }
 
+void StateFrame(int& state, Entity** ents, Texture* textures, int& score, int& highscore)
+{
+    std::string scoreStr = std::to_string(score);
+    std::string highscoreStr = std::to_string(highscore);
+    switch(state)
+    {
+    case START_STATE:
+        if (IsKeyPressed(KEY_SPACE))
+            state = PLAY_STATE;
+        ents[BACKGROUND]->Update();
+        BeginDrawing();
+        ClearBackground(BLACK);
+        ents[BACKGROUND]->Draw();
+        DrawText("SPACE INVADERS", (GetScreenWidth() / 2) - (MeasureText("SPACE INVADERS", 48) / 2), GetScreenHeight() / 3, 48, WHITE);
+        DrawText("Press SPACE to play the game", (GetScreenWidth() / 2)-(MeasureText("Press SPACE to play the game", 32)/2), GetScreenHeight() - (GetScreenHeight()/3), 32, WHITE);
+        EndDrawing();
+        break;
+    case PLAY_STATE:
+        if (IsKeyPressed(KEY_P))
+            state = PAUSE_STATE;
+        // Update
+       //----------------------------------------------------------------------------------
+
+        for (int i = 0; i < TOTAL_ENTITIES; i++)
+        {
+            ents[i]->Update();
+            score += GetCollisions(ents, i) / 1;
+        }
+        if (!ents[PLAYER]->enabled)//save if player is destroyed
+        {
+            Enemy::ResetCount();
+            SaveHighscore(score, highscore);
+            score = 0;
+            state = GAMEOVER_STATE;//swap to game over state if player is destroyed
+        }
+        else if (Enemy::GetCount() <= 0)//when all enemies dead
+        {
+            Enemy::ResetCount();
+            SaveHighscore(score, highscore);
+            score = 0;
+            state = WIN_STATE;//swap to win state if all enemies destroyed
+        }
+        //----------------------------------------------------------------------------------
+
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+        for (int i = 0; i < TOTAL_ENTITIES; i++)
+            ents[i]->Draw();
+        //text rendering
+        DrawText(scoreStr.c_str(), 8, 8, 28, WHITE);//show curent score
+        //keep this line in mind for using raylib as it only accepts *const char into the drawtext function
+        
+        DrawText(highscoreStr.c_str(), GetScreenWidth() - 8 - MeasureText(highscoreStr.c_str(), 28), 8, 28, WHITE);//draw highscore
+
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+        break;
+    case PAUSE_STATE://copy everything from play state except update to get pause
+        if (IsKeyPressed(KEY_P))
+            state = PLAY_STATE;
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+
+        for (int i = 0; i < TOTAL_ENTITIES; i++)
+            ents[i]->Draw();
+        //text rendering
+        
+        DrawText(scoreStr.c_str(), 8, 8, 28, WHITE);//show curent score
+        //keep this line in mind for using raylib as it only accepts *const char into the drawtext function
+        DrawText(highscoreStr.c_str(), GetScreenWidth() - 8 - MeasureText(highscoreStr.c_str(), 28), 8, 28, WHITE);//draw highscore
+        DrawText("PAUSED", (GetScreenWidth() / 2) - (MeasureText("PAUSED", 32) / 2), GetScreenHeight() / 2, 28, YELLOW);
+        DrawText("Press P to unpause the game", (GetScreenWidth() / 2) - (MeasureText("Press P to unpause the game", 32) / 2), GetScreenHeight() - (GetScreenHeight() / 3), 32, WHITE);
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+        break;
+    case GAMEOVER_STATE:
+        if (IsKeyPressed(KEY_SPACE))
+        {
+            for (int i = 0; i < TOTAL_ENTITIES; i++)
+                delete ents[i];
+            CreateEntities(ents, textures);
+            state = PLAY_STATE;
+        }
+        ents[BACKGROUND]->Update();
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+        ents[BACKGROUND]->Draw();
+        //text rendering
+        DrawText("GAME OVER!", (GetScreenWidth() / 2) - (MeasureText("GAME OVER!", 32) / 2), GetScreenHeight() / 2, 28, RED);
+        DrawText("Press SPACE to play again", (GetScreenWidth() / 2) - (MeasureText("Press SPACE to play again", 32) / 2), GetScreenHeight() - (GetScreenHeight() / 3), 32, WHITE);
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+        break;
+    case WIN_STATE:
+        if (IsKeyPressed(KEY_SPACE))
+        {
+            for (int i = 0; i < TOTAL_ENTITIES; i++)
+                delete ents[i];
+            CreateEntities(ents, textures);
+            state = PLAY_STATE;
+        }
+        ents[BACKGROUND]->Update();
+        // Draw
+        //----------------------------------------------------------------------------------
+        BeginDrawing();
+
+        ClearBackground(BLACK);
+        ents[BACKGROUND]->Draw();
+        //text rendering
+        DrawText("YOU WIN!", (GetScreenWidth() / 2) - (MeasureText("YOU WIN!", 32) / 2), GetScreenHeight() / 2, 28, GREEN);
+        DrawText("Press SPACE to play again", (GetScreenWidth() / 2) - (MeasureText("Press SPACE to play again", 32) / 2), GetScreenHeight() - (GetScreenHeight() / 3), 32, WHITE);
+        EndDrawing();
+        //----------------------------------------------------------------------------------
+        break;
+    }
+    
+
+}
+
 int main(int argc, char* argv[])
 {
     // Initialization
     //--------------------------------------------------------------------------------------
     int screenWidth = 800;
     int screenHeight = 800;
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");//initialize window
 
-    Texture2D textures[4] = {
+    Texture2D textures[4] = {//load in textures
     LoadTexture("images/SpaceShooterAssetPack_BackGrounds.png"),
     LoadTexture("images/SpaceShooterAssetPack_Ships.png"),
     LoadTexture("images/SpaceShooterAssetPack_Projectiles.png"),
@@ -141,6 +279,7 @@ int main(int argc, char* argv[])
     CreateEntities(ents, textures);
     int score = 0;
     int highscore = LoadHighscore();
+    int state = START_STATE;
     //SetTargetFPS(60);
     //--------------------------------------------------------------------------------------
     
@@ -148,40 +287,17 @@ int main(int argc, char* argv[])
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-        // Update
-        //----------------------------------------------------------------------------------
-        
-        for (int i = 0; i < TOTAL_ENTITIES; i++)
-        {
-            ents[i]->Update();
-            score += GetCollisions(ents, i)/10;
-        }
-        SaveHighscore(score, highscore);
-        //enemy.Update();
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-        
-        ClearBackground(BLACK);
-        
-        for (int i = 0; i < TOTAL_ENTITIES; i++)
-            ents[i]->Draw();
-        //text rendering
-        std::string scoreStr = std::to_string(score);
-        DrawText(scoreStr.c_str(), 8, 8, 28, WHITE);//show curent score
-        //keep this line in mind for using raylib as it only accepts *const char into the drawtext function
-        std::string highscoreStr = std::to_string(highscore);
-        DrawText(highscoreStr.c_str(), GetScreenWidth() - 8 -MeasureText(highscoreStr.c_str(), 28), 8, 28, WHITE);//draw highscore
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
+        StateFrame(state, ents, textures, score, highscore);
     }
+    SaveHighscore(score, highscore);
 
     // De-Initialization
     //--------------------------------------------------------------------------------------   
     CloseWindow();        // Close window and OpenGL context
+    for (int i = 0; i < TOTAL_ENTITIES; i++)
+    {
+        delete ents[i];
+    }
     //--------------------------------------------------------------------------------------
 
     return 0;
