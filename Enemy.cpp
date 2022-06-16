@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 float Enemy::_speed = 0.0f;
+int Enemy::count = 0;
 
 Enemy::Enemy(Texture2D* texture,float posX, float posY, float offset, float delay, Texture2D* bulletTexture, int spriteX, int spriteY) : Entity(texture, posX, posY, spriteRec, width, height),
 speed(_speed), shootingTimer(0), spriteX(spriteX), spriteY(spriteY), moveTimer(0.0f), moveDelay(delay), offset(offset), towardsBottom(0.0f) 
@@ -13,6 +14,7 @@ speed(_speed), shootingTimer(0), spriteX(spriteX), spriteY(spriteY), moveTimer(0
 	shootingTimer = 5 + (rand() % 35);
 	width = 48;
 	height = 48;
+	count++;//everytimne contructor is called new enemy is added to the count
 }
 
 Enemy::~Enemy()
@@ -93,13 +95,33 @@ void Enemy::GetCollisions(Entity* e, int index)
 {
 	if (!bullet->IsHit() && bullet->isColliding(e))//check collision on all available bullets
 	{
-		_speed += 3.0f;
 		bullet->CollisionHit(index);
 		e->Receive(DAMAGE);
 	}
 }
-
+int Enemy::Receive(int i)//override default receive to increase speed of all enemies
+{
+	switch (i)
+	{
+	case DAMAGE:
+		enabled = false;
+		_speed += 3;
+		count--;
+		break;
+	}
+	return(GetScreenHeight() - posY);
+}
 void Enemy::SetSpeed(float vspeed)
 {
 	_speed = vspeed;
+}
+
+int Enemy::GetCount()
+{
+	return count;
+}
+
+void Enemy::ResetCount()
+{
+	count = 0;
 }

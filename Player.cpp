@@ -63,7 +63,7 @@ void Player::Event()
 	}
 	else
 	{
-		shootingTimer -= GetFrameTime();//time dow to next available shot
+		shootingTimer -= GetFrameTime();//time down to next available shot
 	}
 }
 
