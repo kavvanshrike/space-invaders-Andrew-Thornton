@@ -15,6 +15,7 @@ public:
 	static void SetSpeed(float vspeed);
 	static int GetCount();
 	static void ResetCount();
+	static bool GetLoseCondition();
 	
 private:
 	static float _speed;
@@ -30,7 +31,7 @@ private:
 	float moveDelay;
 	float initial;
 	float offset;
-
+	static bool loseCondition;
 	static int count;
 
 };
